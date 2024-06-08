@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "574604582528",
+    "project_id": "tmreen-ali",
+    "storage_bucket": "tmreen-ali.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:574604582528:android:83cbf970fcb34bb74a1065",
+        "android_client_info": {
+          "package_name": "com.tmreen.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFxlAk1eipummDGzJ1Qug9tI1A86KdkFY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

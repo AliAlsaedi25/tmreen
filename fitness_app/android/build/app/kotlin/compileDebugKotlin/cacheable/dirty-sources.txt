@@ -1,0 +1,1 @@
+C:\Users\alsae\Desktop\copy\fitness_app\android\app\src\main\kotlin\com\example\fitness_app\MainActivity.kt

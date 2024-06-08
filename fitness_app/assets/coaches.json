@@ -1,0 +1,52 @@
+[
+  {
+    "username": "coachjohn",
+    "name": "John Smith",
+    "about": "I am a certified fitness coach with 10 years of experience.",
+    "clients": ["johndoe", "janedoe"],
+    "requests" : []
+
+  },
+  {
+    "username": "coachjane",
+    "name": "Jane Johnson",
+    "about": "Passionate about health and fitness, specializing in yoga and pilates.",
+    "clients": ["mikejones", "sarahsmith"],
+    "requests" : []
+  },
+  {
+    "username": "coachmike",
+    "name": "Mike Thompson",
+    "about": "Expert in strength training and bodybuilding.",
+    "clients": ["emilyjohnson", "robertbrown"],
+    "requests" : []
+  },
+  {
+    "username": "coachlinda",
+    "name": "Linda Davis",
+    "about": "Focused on cardio and endurance training.",
+    "clients": ["lindawilson", "steveturner"],
+    "requests" : []
+  },
+  {
+    "username": "coachamanda",
+    "name": "Amanda Lee",
+    "about": "Certified in nutrition and wellness coaching.",
+    "clients": ["amandamartin", "kevinlee"],
+    "requests" : []
+  },
+  {
+    "username": "coachkevin",
+    "name": "Kevin White",
+    "about": "Specializes in weight loss and functional training.",
+    "clients": ["maryclark", "davismitchell"],
+    "requests" : ["emilyjohnson"]
+  },
+  {
+    "username": "coachali",
+    "name": "Ali Alsaedi",
+    "about": "climbing coach focuses on bouldering",
+    "clients": ["davegraham", "alexmegos"],
+    "requests" : []
+  }
+]

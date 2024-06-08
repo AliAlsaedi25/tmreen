@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gcm_defaultSenderId" translatable="false">574604582528</string>
+    <string name="google_api_key" translatable="false">AIzaSyCFxlAk1eipummDGzJ1Qug9tI1A86KdkFY</string>
+    <string name="google_app_id" translatable="false">1:574604582528:android:83cbf970fcb34bb74a1065</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCFxlAk1eipummDGzJ1Qug9tI1A86KdkFY</string>
+    <string name="google_storage_bucket" translatable="false">tmreen-ali.appspot.com</string>
+    <string name="project_id" translatable="false">tmreen-ali</string>
+</resources>

@@ -1,0 +1,102 @@
+[
+    {
+      "username": "johndoe",
+      "name": "John Doe",
+      "workouts": ["Push Ups", "Pull Ups", "Squats"]
+    },
+    {
+      "username": "janedoe",
+      "name": "Jane Doe",
+      "workouts": ["Running", "Yoga", "Plank"]
+    },
+    {
+      "username": "mikejones",
+      "name": "Mike Jones",
+      "workouts": ["Cycling", "Swimming", "Crunches"]
+    },
+    {
+      "username": "sarahsmith",
+      "name": "Sarah Smith",
+      "workouts": ["Jumping Jacks", "Lunges", "Burpees"]
+    },
+    {
+      "username": "emilyjohnson",
+      "name": "Emily Johnson",
+      "workouts": ["Bicep Curls", "Tricep Dips", "Leg Press"]
+    },
+    {
+      "username": "robertbrown",
+      "name": "Robert Brown",
+      "workouts": ["Deadlifts", "Bench Press", "Pull-Ups"]
+    },
+    {
+      "username": "lindawilson",
+      "name": "Linda Wilson",
+      "workouts": ["Squats", "Running", "Yoga"]
+    },
+    {
+      "username": "steveturner",
+      "name": "Steve Turner",
+      "workouts": ["Swimming", "Cycling", "Push Ups"]
+    },
+    {
+      "username": "amandamartin",
+      "name": "Amanda Martin",
+      "workouts": ["Jump Rope", "Boxing", "Pilates"]
+    },
+    {
+      "username": "kevinlee",
+      "name": "Kevin Lee",
+      "workouts": ["Sprinting", "Weightlifting", "Crunches"]
+    },
+    {
+      "username": "maryclark",
+      "name": "Mary Clark",
+      "workouts": ["Pilates", "Yoga", "Running"]
+    },
+    {
+      "username": "davismitchell",
+      "name": "Davis Mitchell",
+      "workouts": ["Push Ups", "Pull Ups", "Deadlifts"]
+    },
+    {
+      "username": "lisasimmons",
+      "name": "Lisa Simmons",
+      "workouts": ["Swimming", "Cycling", "Plank"]
+    },
+    {
+      "username": "bradleywhite",
+      "name": "Bradley White",
+      "workouts": ["Bicep Curls", "Tricep Dips", "Leg Press"]
+    },
+    {
+      "username": "nancyhall",
+      "name": "Nancy Hall",
+      "workouts": ["Jumping Jacks", "Lunges", "Burpees"]
+    },
+    {
+      "username": "patrickgreen",
+      "name": "Patrick Green",
+      "workouts": ["Cycling", "Swimming", "Crunches"]
+    },
+    {
+      "username": "kimberlymoore",
+      "name": "Kimberly Moore",
+      "workouts": ["Running", "Yoga", "Plank"]
+    },
+    {
+      "username": "nicholasroberts",
+      "name": "Nicholas Roberts",
+      "workouts": ["Push Ups", "Pull Ups", "Squats"]
+    },
+    {
+      "username": "susanwalker",
+      "name": "Susan Walker",
+      "workouts": ["Pilates", "Yoga", "Running"]
+    },
+    {
+      "username": "jasonwilliams",
+      "name": "Jason Williams",
+      "workouts": ["Deadlifts", "Bench Press", "Pull-Ups"]
+    }
+  ]
