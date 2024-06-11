@@ -1,1 +1,1 @@
-C:\Users\alsae\Desktop\copy\fitness_app\android\app\src\main\kotlin\com\example\fitness_app\MainActivity.kt
+C:\Users\alsae\Desktop\tmreen\fitness_app\android\app\src\main\kotlin\com\example\fitness_app\MainActivity.kt

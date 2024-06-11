@@ -1,57 +1,75 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../services/mongo_service.dart';
 
-class MonitorRequestsPage extends StatelessWidget {
+class MonitorRequestsPage extends StatefulWidget {
   final String username;
 
   MonitorRequestsPage({required this.username});
 
-  Future<List<dynamic>> _loadRequests() async {
-    final jsonString = await rootBundle.loadString('assets/coaches.json');
-    final List<dynamic> coaches = json.decode(jsonString);
-    final coach = coaches.firstWhere((coach) => coach['username'] == username);
-    return coach['requests'];
+  @override
+  _MonitorRequestsPageState createState() => _MonitorRequestsPageState();
+}
+
+class _MonitorRequestsPageState extends State<MonitorRequestsPage> {
+  List<String> requests = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequests();
   }
 
-  Future<void> _approveRequest(String clientUsername) async {
-    try {
-      final coachesData = await _loadJsonData('assets/coaches.json');
-      final clientsData = await _loadJsonData('assets/clients.json');
-      final coachIndex = coachesData.indexWhere((coach) => coach['username'] == username);
-      final clientIndex = clientsData.indexWhere((client) => client['username'] == clientUsername);
-
-      if (coachIndex == -1 || clientIndex == -1) {
-        throw Exception('Coach or Client not found');
+  void _fetchRequests() async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var coach = await getCoachByUsername(db, widget.username);
+      if (coach != null) {
+        setState(() {
+          requests = List<String>.from(coach['requests']);
+          _isLoading = false;
+        });
       }
-
-      // Add client to coach's clients array
-      coachesData[coachIndex]['clients'].add(clientUsername);
-      // Remove client from coach's requests array
-      coachesData[coachIndex]['requests'].remove(clientUsername);
-
-      // Save updated coaches data
-      final directory = await getApplicationDocumentsDirectory();
-      var filePath = '${directory.path}/coaches.json';
-      var file = File(filePath);
-      await file.writeAsString(json.encode(coachesData));
-
-      // Save updated clients data
-      filePath = '${directory.path}/clients.json';
-      file = File(filePath);
-      await file.writeAsString(json.encode(clientsData));
-
-      print('Request approved and client moved to coach\'s clients array');
-    } catch (e) {
-      print('Error: $e');
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
     }
   }
 
-  Future<List<dynamic>> _loadJsonData(String path) async {
-    final jsonString = await rootBundle.loadString(path);
-    return json.decode(jsonString);
+  void _approveRequest(String clientUsername) async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var coach = await getCoachByUsername(db, widget.username);
+      if (coach != null) {
+        // Remove the client from the requests array
+        coach['requests'].remove(clientUsername);
+
+        // Ensure all entries in the clients array are objects with a username field
+        coach['clients'] = List<Map<String, dynamic>>.from(coach['clients']
+            .map((client) => client is String ? {'username': client} : client)
+            .toList());
+
+        // Add the client to the clients array
+        coach['clients'].add({'username': clientUsername});
+
+        // Update the coach in the database
+        var collection = db.collection('coaches');
+        await collection.updateOne(
+          mongo.where.eq('username', widget.username),
+          mongo.modify.set('requests', coach['requests']).set('clients', coach['clients']),
+        );
+
+        setState(() {
+          requests = List<String>.from(coach['requests']);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Client approved')));
+      }
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+    }
   }
 
   @override
@@ -60,34 +78,21 @@ class MonitorRequestsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Monitor Requests'),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _loadRequests(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No requests available'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: requests.length,
               itemBuilder: (context, index) {
-                final request = snapshot.data![index];
+                var request = requests[index];
                 return ListTile(
                   title: Text(request),
                   trailing: ElevatedButton(
-                    onPressed: () {
-                      _approveRequest(request);
-                    },
+                    onPressed: () => _approveRequest(request),
                     child: Text('Approve'),
                   ),
                 );
               },
-            );
-          }
-        },
-      ),
+            ),
     );
   }
 }

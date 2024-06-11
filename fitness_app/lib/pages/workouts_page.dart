@@ -1,46 +1,58 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../services/mongo_service.dart';
 
-class WorkoutsPage extends StatelessWidget {
+class WorkoutsPage extends StatefulWidget {
   final String username;
 
   WorkoutsPage({required this.username});
 
-  Future<List<dynamic>> _loadClientWorkouts() async {
-    final jsonString = await rootBundle.loadString('assets/clients.json');
-    final List<dynamic> clients = json.decode(jsonString);
-    final client = clients.firstWhere((client) => client['username'] == username);
-    return client['workouts'];
+  @override
+  _WorkoutsPageState createState() => _WorkoutsPageState();
+}
+
+class _WorkoutsPageState extends State<WorkoutsPage> {
+  List<String> workouts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWorkouts();
+  }
+
+  void _fetchWorkouts() async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var client = await getUserByUsername(db, widget.username);
+      if (client != null) {
+        setState(() {
+          workouts = List<String>.from(client['workouts']);
+          _isLoading = false;
+        });
+      }
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Workouts Page'),
+        title: Text('My Workouts'),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _loadClientWorkouts(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No workouts available'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: workouts.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(snapshot.data![index]),
+                  title: Text(workouts[index]),
                 );
               },
-            );
-          }
-        },
-      ),
+            ),
     );
   }
 }

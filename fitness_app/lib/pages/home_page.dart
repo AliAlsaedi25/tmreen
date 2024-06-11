@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
-  final String username;
+  final Map<String, dynamic> user;
 
-  HomePage({required this.username});
+  HomePage({required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -16,25 +16,25 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'Welcome, $username',
+              'Welcome, ${user['name']}',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/workouts', arguments: username);
+                Navigator.pushNamed(context, '/workouts', arguments: user['username']);
               },
               child: Text('View My Workouts'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/coaches', arguments: username);
+                Navigator.pushNamed(context, '/coaches', arguments: user['username']);
               },
               child: Text('Browse Coaches'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/messageLog', arguments: username);
+                Navigator.pushNamed(context, '/messageLog', arguments: user['username']);
               },
               child: Text('Message Log'),
             ),

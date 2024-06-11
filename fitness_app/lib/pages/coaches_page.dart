@@ -1,58 +1,70 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'coach_detail.dart'; // Import Coach Detail Page
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../services/mongo_service.dart';
+import 'coach_detail.dart';
 
-class CoachesPage extends StatelessWidget {
+class CoachesPage extends StatefulWidget {
   final String username;
 
   CoachesPage({required this.username});
 
-  Future<List<dynamic>> _loadCoaches() async {
-    final jsonString = await rootBundle.loadString('assets/coaches.json');
-    final List<dynamic> coaches = json.decode(jsonString);
-    return coaches;
+  @override
+  _CoachesPageState createState() => _CoachesPageState();
+}
+
+class _CoachesPageState extends State<CoachesPage> {
+  List<Map<String, dynamic>> coaches = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCoaches();
+  }
+
+  void _fetchCoaches() async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var fetchedCoaches = await getAllCoaches(db);
+      setState(() {
+        coaches = fetchedCoaches;
+        _isLoading = false;
+      });
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Browse Coaches'),
+        title: Text('Coaches'),
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _loadCoaches(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No coaches available'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: coaches.length,
               itemBuilder: (context, index) {
-                final coach = snapshot.data![index];
+                var coach = coaches[index];
                 return ListTile(
                   title: Text(coach['name']),
-                  subtitle: Text(coach['about']),
+                  subtitle: Text(coach['about'] ?? ''),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CoachDetailPage(coach: coach, clientUsername: username),
+                        builder: (context) => CoachDetailPage(
+                          coach: coach,
+                          clientUsername: widget.username, // Pass the client username here
+                        ),
                       ),
                     );
                   },
                 );
               },
-            );
-          }
-        },
-      ),
+            ),
     );
   }
 }

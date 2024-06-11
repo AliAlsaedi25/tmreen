@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.tmreen.myapp-mergeDebugResources-21:/values-v16/values-v16.xml",
+            "outputFile": "com.tmreen.myapp-mergeDebugResources-16:/values-v16/values-v16.xml",
             "map": [
                 {
                     "source": "C:\\Users\\alsae\\.gradle\\caches\\transforms-3\\cd029caa73742c9274e432966ee47c8f\\transformed\\core-1.9.0\\res\\values-v16\\values-v16.xml",

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../services/mongo_service.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,24 +10,35 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isCoach = false;
-
-  Future<bool> _checkIfCoach(String username) async {
-    final jsonString = await rootBundle.loadString('assets/coaches.json');
-    final List<dynamic> coaches = json.decode(jsonString);
-    return coaches.any((coach) => coach['username'] == username);
-  }
+  bool _isLoading = false;
 
   void _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final username = _usernameController.text;
     if (username.isNotEmpty) {
-      _isCoach = await _checkIfCoach(username);
-      if (_isCoach) {
-        Navigator.pushReplacementNamed(context, '/coachHome', arguments: username);
+      var db = await connectToDb();
+      if (db.state == mongo.State.OPEN) {
+        var client = await getUserByUsername(db, username);
+        var coach = await getCoachByUsername(db, username);
+        if (client != null) {
+          Navigator.pushReplacementNamed(context, '/home', arguments: client);
+        } else if (coach != null) {
+          Navigator.pushReplacementNamed(context, '/coachHome', arguments: coach);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not found')));
+        }
+        await db.close();
       } else {
-        Navigator.pushReplacementNamed(context, '/home', arguments: username);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
       }
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _signup() {
@@ -63,8 +74,8 @@ class _LoginPageState extends State<LoginPage> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
+              onPressed: _isLoading ? null : _login,
+              child: _isLoading ? CircularProgressIndicator() : Text('Login'),
             ),
             TextButton(
               onPressed: _signup,

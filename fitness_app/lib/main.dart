@@ -3,15 +3,15 @@ import 'pages/login_page.dart';
 import 'pages/home_page.dart';
 import 'pages/workouts_page.dart';
 import 'pages/coach_home_page.dart';
-import 'pages/moniter_clients_page.dart';
+import 'pages/moniter_clients_page.dart' as clients;
+import 'pages/moniter_requests_page.dart' as requests;
 import 'pages/client_workouts_page.dart';
 import 'pages/coaches_page.dart';
-import 'pages/moniter_requests_page.dart';
 import 'pages/coach_detail.dart';
 import 'pages/message_board_page.dart';
 import 'pages/message_log_page.dart';
 import 'pages/coach_message_log_page.dart';
-import 'pages/signup_page.dart';  // Import the Sign Up Page
+import 'pages/signup_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -51,17 +51,18 @@ class MyApp extends StatelessWidget {
       ),
       home: LoginPage(),
       routes: {
-        '/home': (context) => HomePage(username: ModalRoute.of(context)!.settings.arguments as String),
+        '/home': (context) => HomePage(user: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
         '/workouts': (context) => WorkoutsPage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/coachHome': (context) => CoachHomePage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/monitorClients': (context) => MonitorClientsPage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/clientWorkouts': (context) => ClientWorkoutsPage(clientUsername: ModalRoute.of(context)!.settings.arguments as String),
+        '/coachHome': (context) => CoachHomePage(user: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
+        '/monitorClients': (context) => clients.MonitorClientsPage(username: ModalRoute.of(context)!.settings.arguments as String),
+        '/clientWorkouts': (context) => ClientWorkoutsPage(coachUsername: (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)['coachUsername'], clientUsername: (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)['clientUsername']),
         '/coaches': (context) => CoachesPage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/monitorRequests': (context) => MonitorRequestsPage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/messageBoard': (context) => MessageBoardPage(clientUsername: ModalRoute.of(context)!.settings.arguments as String, coachUsername: ModalRoute.of(context)!.settings.arguments as String),
+        '/monitorRequests': (context) => requests.MonitorRequestsPage(username: ModalRoute.of(context)!.settings.arguments as String),
+        '/messageBoard': (context) => MessageBoardPage(clientUsername: (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)['clientUsername'], coachUsername: (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)['coachUsername']),
         '/messageLog': (context) => MessageLogPage(username: ModalRoute.of(context)!.settings.arguments as String),
         '/coachMessageLog': (context) => CoachMessageLogPage(username: ModalRoute.of(context)!.settings.arguments as String),
-        '/signup': (context) => SignUpPage(),  // Add the sign-up page route
+        '/signup': (context) => SignUpPage(),
+        '/coachDetail': (context) => CoachDetailPage(coach: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>, clientUsername: (ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>)['clientUsername']),
       },
     );
   }

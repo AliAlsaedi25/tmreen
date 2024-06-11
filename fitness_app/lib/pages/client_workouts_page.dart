@@ -1,129 +1,111 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../services/mongo_service.dart';
 
 class ClientWorkoutsPage extends StatefulWidget {
+  final String coachUsername;
   final String clientUsername;
 
-  ClientWorkoutsPage({required this.clientUsername});
+  ClientWorkoutsPage({required this.coachUsername, required this.clientUsername});
 
   @override
   _ClientWorkoutsPageState createState() => _ClientWorkoutsPageState();
 }
 
 class _ClientWorkoutsPageState extends State<ClientWorkoutsPage> {
+  List<String> workouts = [];
+  bool _isLoading = true;
   final TextEditingController _workoutController = TextEditingController();
-  List<dynamic> _workouts = [];
-  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    _loadClientWorkouts();
+    _fetchWorkouts();
   }
 
-  Future<void> _loadClientWorkouts() async {
-    try {
-      final jsonString = await rootBundle.loadString('assets/clients.json');
-      final List<dynamic> clients = json.decode(jsonString);
-      final client = clients.firstWhere((client) => client['username'] == widget.clientUsername);
-      setState(() {
-        _workouts = client['workouts'];
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'An error occurred. Please try again.';
-      });
-      print('Error: $e');
-    }
-  }
-
-  Future<void> _addWorkout() async {
-    final workout = _workoutController.text.trim();
-
-    if (workout.isEmpty) {
-      setState(() {
-        _errorMessage = 'Workout cannot be empty';
-      });
-      return;
-    }
-
-    try {
-      final clientsData = await _loadJsonData('assets/clients.json');
-      final clientIndex = clientsData.indexWhere((client) => client['username'] == widget.clientUsername);
-
-      if (clientIndex == -1) {
+  void _fetchWorkouts() async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var client = await getUserByUsername(db, widget.clientUsername);
+      if (client != null) {
         setState(() {
-          _errorMessage = 'Client not found';
+          workouts = List<String>.from(client['workouts']);
+          _isLoading = false;
         });
-        return;
       }
-
-      clientsData[clientIndex]['workouts'].add(workout);
-
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/clients.json';
-      final file = File(filePath);
-      await file.writeAsString(json.encode(clientsData));
-
-      setState(() {
-        _workouts.add(workout);
-        _workoutController.clear();
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'An error occurred. Please try again.';
-      });
-      print('Error: $e');
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
     }
   }
 
-  Future<List<dynamic>> _loadJsonData(String path) async {
-    final jsonString = await rootBundle.loadString(path);
-    return json.decode(jsonString);
+  void _addWorkout() async {
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var client = await getUserByUsername(db, widget.clientUsername);
+      if (client != null) {
+        client['workouts'].add(_workoutController.text);
+
+        var collection = db.collection('clients');
+        await collection.updateOne(
+          mongo.where.eq('username', widget.clientUsername),
+          mongo.modify.set('workouts', client['workouts']),
+        );
+
+        setState(() {
+          workouts = List<String>.from(client['workouts']);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Workout added')));
+      }
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Workouts for ${widget.clientUsername}'),
+        title: Text('Client Workouts'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            if (_errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: Text(
-                  _errorMessage,
-                  style: TextStyle(color: Colors.red),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
+              children: <Widget>[
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: workouts.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(workouts[index]),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _workouts.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(_workouts[index]),
-                  );
-                },
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          controller: _workoutController,
+                          decoration: InputDecoration(
+                            labelText: 'Add Workout',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: _addWorkout,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: _workoutController,
-              decoration: InputDecoration(labelText: 'Add Workout'),
-            ),
-            ElevatedButton(
-              onPressed: _addWorkout,
-              child: Text('Add Workout'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

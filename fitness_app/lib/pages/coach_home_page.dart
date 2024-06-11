@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class CoachHomePage extends StatelessWidget {
-  final String username;
+  final Map<String, dynamic> user;
 
-  CoachHomePage({required this.username});
+  CoachHomePage({required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -15,22 +15,22 @@ class CoachHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text('Welcome, Coach $username'),
+            Text('Welcome, Coach ${user['name']}'),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/monitorClients', arguments: username);
+                Navigator.pushNamed(context, '/monitorClients', arguments: user['username']);
               },
               child: Text('Monitor Clients'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/monitorRequests', arguments: username);
+                Navigator.pushNamed(context, '/monitorRequests', arguments: user['username']);
               },
               child: Text('Monitor Requests'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/coachMessageLog', arguments: username);
+                Navigator.pushNamed(context, '/coachMessageLog', arguments: user['username']);
               },
               child: Text('Message Log'),
             ),
