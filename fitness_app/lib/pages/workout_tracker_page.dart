@@ -14,21 +14,22 @@ class WorkoutTrackerPage extends StatefulWidget {
 class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
   final TextEditingController _workoutController = TextEditingController();
 
-  void _logWorkout() async {
-    String workout = _workoutController.text;
+  void _addWorkout() async {
+    var db = await connectToDb();
+    var user = await getUserByUsername(db, widget.username);
+    if (user != null) {
+      List<Map<String, dynamic>> workouts = List<Map<String, dynamic>>.from(
+        (user['workouts'] as List).map((workout) => Map<String, dynamic>.from(workout)),
+      );
+      workouts.add({
+        'workout': _workoutController.text,
+        'date': DateTime.now().toString(),
+      });
 
-    if (workout.isNotEmpty) {
-      var db = await connectToDb();
-      var user = await getUserByUsername(db, widget.username);
-      if (user != null) {
-        List<dynamic> workouts = user['workouts'] ?? [];
-        workouts.add({'date': DateTime.now().toIso8601String(), 'workout': workout});
-        await updateUserWorkouts(db, widget.username, workouts);
-        _workoutController.clear();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Workout logged!')));
-      }
-      await db.close();
+      await updateUserWorkouts(db, widget.username, workouts);
+      setState(() {});
     }
+    await db.close();
   }
 
   @override
@@ -45,13 +46,15 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
               controller: _workoutController,
               decoration: InputDecoration(
                 labelText: 'Workout',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _logWorkout,
-              child: Text('Log Workout'),
+              onPressed: _addWorkout,
+              child: Text('Add Workout'),
             ),
           ],
         ),

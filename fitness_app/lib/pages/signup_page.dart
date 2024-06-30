@@ -3,44 +3,61 @@ import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import '../services/mongo_service.dart';
 
 class SignUpPage extends StatefulWidget {
+  const SignUpPage({Key? key}) : super(key: key);
+
   @override
   _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  String _role = 'client';  // Default role
-  bool _isLoading = false;
+  bool _isCoach = false;
 
   void _signUp() async {
-    setState(() {
-      _isLoading = true;
-    });
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+    String name = _nameController.text;
 
-    final username = _usernameController.text;
-    final name = _nameController.text;
-    if (username.isNotEmpty && name.isNotEmpty) {
-      var db = await connectToDb();
-      if (db.state == mongo.State.OPEN) {
-        if (_role == 'client') {
-          var newUser = {'username': username, 'name': name, 'workouts': []};
-          await addUser(db, newUser);
-        } else if (_role == 'coach') {
-          var newCoach = {'username': username, 'name': name, 'about': '', 'clients': [], 'requests': []};
-          await addCoach(db, newCoach);
-        }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User registered')));
-        await db.close();
-        Navigator.pop(context);
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var existingUser = await getUserByUsername(db, username);
+      var existingCoach = await getCoachByUsername(db, username);
+
+      if (existingUser != null || existingCoach != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Username already exists')),
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+        if (_isCoach) {
+          await addCoach(db, {
+            'username': username,
+            'password': password,
+            'name': name,
+            'clients': [],
+            'requests': [],
+            'workouts': [],
+          });
+        } else {
+          await addUser(db, {
+            'username': username,
+            'password': password,
+            'name': name,
+            'workouts': [],
+          });
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Account created successfully')),
+        );
+        Navigator.pop(context);
       }
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to connect to the database')),
+      );
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
@@ -52,43 +69,55 @@ class _SignUpPageState extends State<SignUpPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Username',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Name',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
             ),
-            SizedBox(height: 16),
-            DropdownButton<String>(
-              value: _role,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _role = newValue!;
-                });
-              },
-              items: <String>['client', 'coach']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            const SizedBox(height: 20),
+            Row(
+              children: <Widget>[
+                Checkbox(
+                  value: _isCoach,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isCoach = value!;
+                    });
+                  },
+                ),
+                Text('Sign up as a coach'),
+              ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isLoading ? null : _signUp,
-              child: _isLoading ? CircularProgressIndicator() : Text('Sign Up'),
+              onPressed: _signUp,
+              child: Text('Sign Up'),
             ),
           ],
         ),

@@ -1,45 +1,56 @@
 import 'package:flutter/material.dart';
+import 'view_workouts_page.dart';
+import 'coaches_page.dart';
+import 'workout_tracker_page.dart';
+import 'statistics_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final Map<String, dynamic> user;
 
   HomePage({required this.user});
 
   @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this); // Updated for four tabs
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Welcome, ${user['name']}',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/workouts', arguments: user['username']);
-              },
-              child: Text('View My Workouts'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/coaches', arguments: user['username']);
-              },
-              child: Text('Browse Coaches'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/messageLog', arguments: user['username']);
-              },
-              child: Text('Message Log'),
-            ),
+        title: Text('Client Home'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'View My Workouts'),
+            Tab(text: 'Browse Coaches'),
+            Tab(text: 'Workout Tracker'), // New Tab
+            Tab(text: 'Statistics'), // New Tab
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          ViewWorkoutsPage(username: widget.user['username']),
+          CoachesPage(username: widget.user['username']),
+          WorkoutTrackerPage(username: widget.user['username']), // New Page
+          StatisticsPage(username: widget.user['username']), // New Page
+        ],
       ),
     );
   }

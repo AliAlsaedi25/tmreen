@@ -3,6 +3,8 @@ import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import '../services/mongo_service.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -10,75 +12,98 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
 
   void _login() async {
-    setState(() {
-      _isLoading = true;
-    });
+    String username = _usernameController.text;
+    String password = _passwordController.text;
 
-    final username = _usernameController.text;
-    if (username.isNotEmpty) {
-      var db = await connectToDb();
-      if (db.state == mongo.State.OPEN) {
-        var client = await getUserByUsername(db, username);
-        var coach = await getCoachByUsername(db, username);
-        if (client != null) {
-          Navigator.pushReplacementNamed(context, '/home', arguments: client);
-        } else if (coach != null) {
-          Navigator.pushReplacementNamed(context, '/coachHome', arguments: coach);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not found')));
+    var db = await connectToDb();
+    if (db.state == mongo.State.OPEN) {
+      var user = await getUserByUsername(db, username);
+      var coach = await getCoachByUsername(db, username);
+
+      print('User: $user');  // Debug print
+      print('Coach: $coach');  // Debug print
+
+      if (user != null) {
+        print('User password: ${user['password']}');  // Debug print
+        if (user['password'] == password) {
+          Navigator.pushReplacementNamed(
+            context,
+            '/home',
+            arguments: user,
+          );
+          return;
         }
-        await db.close();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to connect to the database')));
+      } 
+
+      if (coach != null) {
+        print('Coach password: ${coach['password']}');  // Debug print
+        if (coach['password'] == password) {
+          Navigator.pushReplacementNamed(
+            context,
+            '/coachHome',
+            arguments: coach,
+          );
+          return;
+        }
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid username or password')),
+      );
+
+      await db.close();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to connect to the database')),
+      );
     }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  void _signup() {
-    Navigator.pushNamed(context, '/signup');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text(
+              'Welcome Back!',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
                 labelText: 'Username',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 20),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
               obscureText: true,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isLoading ? null : _login,
-              child: _isLoading ? CircularProgressIndicator() : Text('Login'),
+              onPressed: _login,
+              child: Text('Login'),
             ),
             TextButton(
-              onPressed: _signup,
+              onPressed: () {
+                Navigator.pushNamed(context, '/signup');
+              },
               child: Text('Sign Up'),
             ),
           ],
